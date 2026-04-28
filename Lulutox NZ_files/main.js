@@ -1,3 +1,28 @@
+// ========== 等待 MaxConv 注入参数后返回完整 URL ==========
+function getMaxConvUrl(callback) {
+  const fallback = 'https://track.healthdeepinsight.com/click';
+  let attempts = 0;
+  const maxAttempts = 30;
+
+  const timer = setInterval(function() {
+    attempts++;
+    const links = document.querySelectorAll('a[href*="track.healthdeepinsight.com/click"]');
+    for (let link of links) {
+      if (link.href && link.href.includes('mc_attr')) {
+        clearInterval(timer);
+        console.log('[MaxConv] 成功获取追踪 URL:', link.href);
+        callback(link.href);
+        return;
+      }
+    }
+    if (attempts >= maxAttempts) {
+      clearInterval(timer);
+      console.warn('[MaxConv] 超时，使用裸 URL 兜底');
+      callback(fallback);
+    }
+  }, 100);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Set current date
   const dateElement = document.getElementById('currentDate');
