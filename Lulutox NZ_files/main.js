@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== 底部悬浮按钮 ==========
 function createStickyButton() {
   const btn = document.createElement('div');
+  btn.id = 'stickyBtn';
   btn.innerHTML = `
     <div style="
       position: fixed;
@@ -60,7 +61,7 @@ function createStickyButton() {
       z-index: 9999;
       box-sizing: border-box;
     ">
-      <a href="https://track.healthdeepinsight.com/click" style="
+      <a id="stickyBtnLink" href="https://track.healthdeepinsight.com/click" style="
         display: block;
         max-width: 480px;
         margin: 0 auto;
@@ -78,88 +79,96 @@ function createStickyButton() {
     </div>
   `;
   document.body.appendChild(btn);
+
+  // ✅ 渲染后更新悬浮按钮链接
+  getMaxConvUrl(function(trackingUrl) {
+    const link = document.getElementById('stickyBtnLink');
+    if (link) link.href = trackingUrl;
+  });
 }
 createStickyButton();
 
 // ========== 滚动35%弹窗 ==========
 function createPopup() {
-  const overlay = document.createElement('div');
-  overlay.id = 'popupOverlay';
-  overlay.innerHTML = `
-    <div style="
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    ">
+  // ✅ 等 MaxConv 注入完成后再渲染弹窗
+  getMaxConvUrl(function(trackingUrl) {
+
+    const overlay = document.createElement('div');
+    overlay.id = 'popupOverlay';
+    overlay.innerHTML = `
       <div style="
-        background: white;
-        border-radius: 12px;
-        width: 88%;
-        max-width: 400px;
-        overflow: hidden;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       ">
-        <!-- 绿色标题栏 -->
         <div style="
-          background: #3aaf4e;
-          color: white;
-          font-weight: bold;
-          font-size: 18px;
-          padding: 14px 20px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+          background: white;
+          border-radius: 12px;
+          width: 88%;
+          max-width: 400px;
+          overflow: hidden;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         ">
-          <span>⏱ LIMITED TIME</span>
-          <span id="closePopup" style="cursor:pointer; font-size:20px;">✕</span>
-        </div>
-        <!-- 内容区 -->
-        <div style="padding: 20px; text-align: center;">
-          <img src="https://dailylifeinsider.com/wp-content/uploads/2025/03/3408904830894308943.jpg"
-            style="
-              width: 200px;
-              height: 200px;
-              object-fit: cover;
-              border-radius: 8px;
-              display: block;
-              margin: 0 auto 16px auto;
-            "
-          />
-          <div style="font-size:20px; font-weight:bold; margin-bottom:6px;">
-            Get Your 50% Off Today!
-          </div>
-          <div style="font-size:14px; color:#555; margin-bottom:20px;">
-            Get yours for 50% OFF Today only
-          </div>
-          <a href="https://track.healthdeepinsight.com/click" style="
-            display: block;
+          <div style="
             background: #3aaf4e;
             color: white;
             font-weight: bold;
-            font-size: 16px;
-            padding: 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            letter-spacing: 1px;
-          ">Claim Your Special Price Now →</a>
+            font-size: 18px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          ">
+            <span>⏱ LIMITED TIME</span>
+            <span id="closePopup" style="cursor:pointer; font-size:20px;">✕</span>
+          </div>
+          <div style="padding: 20px; text-align: center;">
+            <img src="https://dailylifeinsider.com/wp-content/uploads/2025/03/3408904830894308943.jpg"
+              style="
+                width: 200px;
+                height: 200px;
+                object-fit: cover;
+                border-radius: 8px;
+                display: block;
+                margin: 0 auto 16px auto;
+              "
+            />
+            <div style="font-size:20px; font-weight:bold; margin-bottom:6px;">
+              Get Your 50% Off Today!
+            </div>
+            <div style="font-size:14px; color:#555; margin-bottom:20px;">
+              Get yours for 50% OFF Today only
+            </div>
+            <a href="${trackingUrl}" style="
+              display: block;
+              background: #3aaf4e;
+              color: white;
+              font-weight: bold;
+              font-size: 16px;
+              padding: 14px;
+              border-radius: 8px;
+              text-decoration: none;
+              letter-spacing: 1px;
+            ">Claim Your Special Price Now →</a>
+          </div>
         </div>
       </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
+    `;
+    document.body.appendChild(overlay);
 
-  // 关闭按钮
-  document.getElementById('closePopup').addEventListener('click', function() {
-    overlay.style.display = 'none';
-  });
+    document.getElementById('closePopup').addEventListener('click', function() {
+      overlay.style.display = 'none';
+    });
+
+  }); // getMaxConvUrl 结束
 }
 
-// 滚动监听：到35%触发一次（移动端感知校正）
+// ========== 滚动监听：到35%触发一次 ==========
 let popupShown = false;
 window.addEventListener('scroll', function() {
   if (popupShown) return;
